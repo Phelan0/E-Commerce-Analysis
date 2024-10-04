@@ -1,4 +1,4 @@
-﻿use SalesRevenue
+use SalesRevenue
 
 ------ RENAME TABLE:
 exec sp_rename 'olist_customers_dataset', 'customers'
@@ -179,7 +179,7 @@ select order_id, customer_id, order_status, order_purchase_timestamp, order_appr
 into #temp_orders
 from orders;
 
-select order_id, product_id, seller_id, price, freight_value
+select order_id, product_id, seller_id, price, freight_value, shipping_limit_date
 into #temp_order_items
 from order_items;
 
@@ -195,7 +195,7 @@ from order_payments;
 ------ JOIN TABLE: 
 select o.order_id, o.customer_id, o.order_status, o.order_purchase_timestamp, o.order_approved_at, 
        o.order_delivered_carrier_date, o.order_delivered_customer_date, o.order_estimated_delivery_date, 
-       i.product_id, i.seller_id, i.price, i.freight_value,
+       i.product_id, i.seller_id, i.price, i.freight_value,i.shipping_limit_date,
        r.review_score,
        p.payment_type, p.payment_value, p.payment_sequential, p.payment_installments
 into orders_full
@@ -211,12 +211,17 @@ select * from orders_full
 alter table orders_full
 add time_approved int
 update orders_full
-set time_approved = datediff(hour, order_purchase_timestamp, order_approved_at)
+set time_approved = datediff(day, order_purchase_timestamp, order_approved_at)
+
+alter table orders_full
+add time_limit int
+update orders_full
+set time_limit = datediff(day, order_purchase_timestamp, shipping_limit_date)
 
 alter table orders_full
 add time_delivered_carrier int
 update orders_full
-set time_delivered_carrier = datediff(hour, order_approved_at, order_delivered_carrier_date)
+set time_delivered_carrier = datediff(day, order_purchase_timestamp, order_delivered_carrier_date)
 
 alter table orders_full
 add time_delivered_customer int
@@ -233,35 +238,58 @@ add time_all int
 update orders_full
 set time_all = datediff(day, order_purchase_timestamp, order_delivered_customer_date)
 
-alter table orders_full
-add time_approved_hour Nvarchar(20)
-update orders_full
-set time_approved_hour = case
-	when time_approved >= 0 and time_approved <= 1 then N'Trong 1 giờ'
-	when time_approved >= 2 and time_approved <= 12 then N'Trong nửa ngày'
-	when time_approved >= 13 and time_approved <= 24 then N'Trong 1 ngày'
-	when time_approved >= 25 and time_approved < = 36 then N'Trong 36 tiếng'
-	when time_approved >= 37 and time_approved <= 48 then N'Trong 2 ngày'
-	when time_approved >= 49 and time_approved <= 60 then N'Trong 60 tiếng'
-	when time_approved >= 61 and time_approved <= 72 then N'Trong 3 ngày'
-	when time_approved >= 73 and time_approved <= 99999999 then N'Sau 3 ngày'
-end
-where time_approved is not null 
 
-alter table orders_full
-add time_delivered_carrier_hour Nvarchar(20)
+alter table orders_full 
+add time_approved_day Nvarchar(20)
 update orders_full
-set time_delivered_carrier_hour = case
-	when time_delivered_carrier >= 0 and time_delivered_carrier <= 1 then N'Trong 1 giờ'
-	when time_delivered_carrier >= 2 and time_delivered_carrier <= 12 then N'Trong nửa ngày'
-	when time_delivered_carrier >= 13 and time_delivered_carrier <= 24 then N'Trong 1 ngày'
-	when time_delivered_carrier >= 25 and time_delivered_carrier < = 36 then N'Trong 36 tiếng'
-	when time_delivered_carrier >= 37 and time_delivered_carrier <= 48 then N'Trong 2 ngày'
-	when time_delivered_carrier >= 49 and time_delivered_carrier <= 60 then N'Trong 60 tiếng'
-	when time_delivered_carrier >= 61 and time_delivered_carrier <= 72 then N'Trong 3 ngày'
-	when time_delivered_carrier >= 73 and time_delivered_carrier <= 99999999 then N'Sau 3 ngày'
+set time_approved_day = case
+	when time_approved >= 0 and time_approved <= 3 then N'Từ 1 đến 3 ngày'
+	when time_approved >= 4 and time_approved <= 7 then N'Từ 4 đến 7 ngày'
+	when time_approved >= 8 and time_approved <= 14 then N'Trong 2 tuần'
+	when time_approved >= 15 and time_approved <= 21 then N'Trong 3 tuần'
+	when time_approved >= 22 and time_approved <= 28 then N'Trong 1 tháng'
+	when time_approved >= 29 and time_approved <= 35 then N'Trong 5 tuần'
+	when time_approved >= 36 and time_approved <= 42 then N'Trong 6 tuần'
+	when time_approved >= 43 and time_approved <= 49 then N'Trong 7 tuần'
+	when time_approved >= 50 and time_approved <= 56 then N'Trong 2 tháng'
+	when time_approved >= 57 and time_approved <= 99999999 then N'Sau 2 tháng'
 end
-where time_delivered_carrier is not null 
+where time_approved is not null
+
+alter table orders_full 
+add time_limit_day Nvarchar(20)
+update orders_full
+set time_limit_day = case
+	when time_limit >= 0 and time_limit <= 3 then N'Từ 1 đến 3 ngày'
+	when time_limit >= 4 and time_limit <= 7 then N'Từ 4 đến 7 ngày'
+	when time_limit >= 8 and time_limit <= 14 then N'Trong 2 tuần'
+	when time_limit >= 15 and time_limit <= 21 then N'Trong 3 tuần'
+	when time_limit >= 22 and time_limit <= 28 then N'Trong 1 tháng'
+	when time_limit >= 29 and time_limit <= 35 then N'Trong 5 tuần'
+	when time_limit >= 36 and time_limit <= 42 then N'Trong 6 tuần'
+	when time_limit >= 43 and time_limit <= 49 then N'Trong 7 tuần'
+	when time_limit >= 50 and time_limit <= 56 then N'Trong 2 tháng'
+	when time_limit >= 57 and time_limit <= 99999999 then N'Sau 2 tháng'
+end
+where time_limit is not null
+
+alter table orders_full 
+add time_delivered_carrier_day Nvarchar(20)
+update orders_full
+set time_delivered_carrier_day = case
+	when time_delivered_carrier >= 0 and time_delivered_carrier <= 3 then N'Từ 1 đến 3 ngày'
+	when time_delivered_carrier >= 4 and time_delivered_carrier <= 7 then N'Từ 4 đến 7 ngày'
+	when time_delivered_carrier >= 8 and time_delivered_carrier <= 14 then N'Trong 2 tuần'
+	when time_delivered_carrier >= 15 and time_delivered_carrier <= 21 then N'Trong 3 tuần'
+	when time_delivered_carrier >= 22 and time_delivered_carrier <= 28 then N'Trong 1 tháng'
+	when time_delivered_carrier >= 29 and time_delivered_carrier <= 35 then N'Trong 5 tuần'
+	when time_delivered_carrier >= 36 and time_delivered_carrier <= 42 then N'Trong 6 tuần'
+	when time_delivered_carrier >= 43 and time_delivered_carrier <= 49 then N'Trong 7 tuần'
+	when time_delivered_carrier >= 50 and time_delivered_carrier <= 56 then N'Trong 2 tháng'
+	when time_delivered_carrier >= 57 and time_delivered_carrier <= 99999999 then N'Sau 2 tháng'
+end
+where time_delivered_carrier is not null
+
 
 alter table orders_full 
 add time_delivered_customer_day Nvarchar(20)
