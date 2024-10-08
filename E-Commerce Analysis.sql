@@ -156,8 +156,8 @@ having count(*) > 1
 
 
 ------ TRANSLATE PRODUCT CATEGORIES NAME TO ENGLISH:
-create index idx_product_category_name on products(product_category_name);
-create index idx_translation_column1 on translation(column1);
+create index idx_product_category_name on products(product_category_name)
+create index idx_translation_column1 on translation(column1)
 
 update p
 set p.product_category_name = t.column2
@@ -165,12 +165,15 @@ from products p
 join translation t
 on p.product_category_name = t.column1
 
+update products
+set product_category_name = replace(product_category_name, '_', ' ')
+
 
 ------ CREATE INDEX:
-create index idx_order_id on orders(order_id);
-create index idx_order_id_items on order_items(order_id);
-create index idx_order_id_reviews on order_reviews(order_id);
-create index idx_order_id_payments on order_payments(order_id);
+create index idx_order_id on orders(order_id)
+create index idx_order_id_items on order_items(order_id)
+create index idx_order_id_reviews on order_reviews(order_id)
+create index idx_order_id_payments on order_payments(order_id)
 
 
 ------ CREATE TEMPORARY TABLES
@@ -202,7 +205,7 @@ into orders_full
 from #temp_orders o
 left join #temp_order_items i on o.order_id = i.order_id
 left join #temp_order_reviews r on o.order_id = r.order_id
-left join #temp_order_payments p on o.order_id = p.order_id;
+left join #temp_order_payments p on o.order_id = p.order_id
 
 select * from orders_full
 
