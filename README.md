@@ -30,11 +30,8 @@ Gia tăng tỉ lệ người dùng quay lại mua hàng, gia tăng khách hàng 
   * Sử dụng DML (Data Manipulation Language): update
   * Sử dụng join: left join
 - Power BI
-  * Sử dụng Aggregate Functions (Hàm tổng hợp): 
-  * Sử dụng Logical Functions (Hàm điều kiện):
-  * Sử dụng Time Intelligence Functions (Hàm thời gian):
-  * Sử dụng Filter Functions (Hàm lọc):
-  * Sử dụng Mathematical Functions (Hàm toán học):
+  * Sử dụng các hàm Dax để tính toán lọc dữ liệu
+  * Xây dựng các biểu đồ để trực quan hóa dữ liệu
 
 ## 5. Implementation  
 - Xử lý dữ liệu: Sử dụng Sql để làm sạch dữ liệu, tạo mối liên kết cho các bảng, nhóm các trường dữ liệu sử dụng.
