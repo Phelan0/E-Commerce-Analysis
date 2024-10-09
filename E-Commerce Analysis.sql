@@ -169,6 +169,14 @@ update products
 set product_category_name = replace(product_category_name, '_', ' ')
 
 
+------ DELETE DATA 
+delete from geolocation
+where geolocation_zip_code_prefix NOT IN (
+    select distinct customer_zip_code_prefix from customers
+    union
+    select distinct seller_zip_code_prefix from sellers
+)
+	
 ------ CREATE INDEX:
 create index idx_order_id on orders(order_id)
 create index idx_order_id_items on order_items(order_id)
